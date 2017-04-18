@@ -16,8 +16,8 @@ services:
   
   logstash:
     image: logstash:5.1-alpine
-    ports:
-      - 12345:12345/udp
+    expose:
+      - 12345/udp
     command: logstash -e 'input { udp { port => 12345 } } filter { grok { match => { "message" => "(?<message_prefix>[^:]*)[:] %{GREEDYDATA:message_contents}" } } json { source => "message_contents" } } output { stdout { codec => "rubydebug" } }'
 
 
