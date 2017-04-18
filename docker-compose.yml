@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+  haproxy:
+    image: haproxy:1.7-alpine
+    environment:
+      - "LOCATION_DEFAULT=helloworld:80"
+      - "LOG_DEST=logstash:12345"
+    ports:
+      - 80:80
+      - 8001:8001
+    command: haproxy -f /usr/local/etc/haproxy/haproxy.cfg
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+
+  
+  logstash:
+    image: logstash:5.1-alpine
+    ports:
+      - 12345:12345/udp
+    command: logstash -e 'input { udp { port => 12345 } } filter { grok { match => { "message" => "(?<message_prefix>[^:]*)[:] %{GREEDYDATA:message_contents}" } } json { source => "message_contents" } } output { stdout { codec => "rubydebug" } }'
+
+
+  helloworld:
+    image: tutum/hello-world
